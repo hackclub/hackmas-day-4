@@ -387,99 +387,17 @@ Local dev still works. Deployment will now work too.
 
 ---
 
-# Step 12 - Deploy to Fly.io (free)
-
-Fly.io gives you:
-- a real server
-- a persistent disk (SQLite works)
-- a public URL
-
-### 12.1 Install Fly CLI
-
-**macOS / Linux**
+# Step 12 - Deploy to FastDeploy (custom)
 
 ```bash
-curl -L https://fly.io/install.sh | sh
-```
-
-**Windows (PowerShell)**
-
-```powershell
-iwr https://fly.io/install.ps1 -useb | iex
-```
-
-Now kill ur terminal and make a new one, if it doesnt work, restart!
-
-Login:
-
-```bash
-fly auth login
-```
----
-### 12.2 Create the Fly app
-
-From the project root:
-
-```bash
-fly launch
-```
-
-Answer prompts:
-- App name: whatever
-- Region: closest
-- Dockerfile: no
-- SQLite: yes
-- Deploy now: no
-
-This creates:
-- `fly.toml`
-- a persistent volume mounted at `/data`
----
-### 12.3 Set production DB path
-
-SQLite must live on Flys disk, not the project folder.
-
-```bash
-fly secrets set DB_FILE_NAME=/data/my.db
-```
-
-Local dev still uses `./my.db`.  
-Production uses `/data/my.db`.
-
----
-### 12.4 Deploy
-
-```bash
-fly deploy
-```
-
-Fly prints a URL like:
-
-```
-https://beans-cool-api.fly.dev
-```
-
-This is your playable URL.
-
----
-
-# Step 13 - Push the database schema to production
-
-Deploying does **not** create tables automatically.
-After the first deploy, run:
-
-```bash
-fly ssh console
 bunx drizzle-kit push
-exit
+bun install -g fastdeploy-hono
+fastdeploy login 
+fastdeploy
 ```
 
-You only need to do this:
-- once after first deploy
-- again if your schema changes
-
 ---
-# Step 14 - Push to GitHub
+# Step 13 - Push to GitHub
 
 ### 14.1 Init git
 
@@ -506,4 +424,4 @@ git remote add origin https://github.com/YOURNAME/beans-cool-api.git
 git push -u origin main
 ```
 
-Once you are done making your own project, submit your project! Have fun!
+Once you are done making your own project, [https://forms.hackclub.com/haxmas-day-4](https://forms.hackclub.com/haxmas-day-4) your project! Have fun!
