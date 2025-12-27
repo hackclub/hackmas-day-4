@@ -1,27 +1,36 @@
+# Build Your Own Christmas API 🎄
 
-## Prequesites
+![Meme](https://hc-cdn.hel1.your-objectstorage.com/s/v3/e7b2ae69ca0c6140_image.png)
+
+*Don't worry, we're building something WAY simpler than a machine learning CRM!*
+
+## Prerequisites
 
 Make sure you have [bun](https://bun.com/) installed!
 
 You will also need:
 - a GitHub account
-- a Fly.io account (free, no credit card)
+- a ID verified Hack Club account
 
 ## What you’re learning
 
 ### Hono
-A tiny web framework- you define routes like, kind of like Express:
+A tiny web framework. You define routes like this:
 - “When someone does `GET /api/stuff`, run this function.”
+
 ### SQLite
-A database thats just a file (like `my.db`) on your computer, this way things can persist!
+A database that's just a file (like `my.db`) on your computer. This way things can persist!
+
 ### Drizzle
 A TypeScript ORM that lets you:
 - define your tables in `schema.ts`
 - query them with TypeScript instead of raw SQL strings
+
 ### drizzle-kit
-A CLI tool that takes your schema and creates/updates the real database so you dont have to manually!
+A CLI tool that takes your schema and creates/updates the real database so you don't have to do it manually!
 
 ---
+
 ## Your Project
 
 You’ll end up with your own project that has:
@@ -31,13 +40,13 @@ You’ll end up with your own project that has:
 - Drizzle schema + queries
 - a couple API endpoints that read/write the DB
 
-In this workshop ill show you how to set all this up, what you actually make is up to you, it'd be super cool if it was Christmas themed though!
+In this workshop I'll show you how to set all this up. **What you actually make is up to you!** It'd be super cool if it was Christmas themed though, you do need at least 2 API routes! 🎅
 
 ---
 
 # Project structure
 
-This is the layout you're aiming for:
+This is the layout you're aiming for, if something later breaks check if your stuff looks like this!:
 
 ```
 beans-cool-api/
@@ -60,8 +69,18 @@ beans-cool-api/
 
 ```bash
 bun create hono@latest my-project
+```
+
+When it asks:
+- **Install project dependencies?** `Yes` (press Enter)
+- **Which package manager?** `bun` (press Enter)
+
+TLDR: yes, bun
+
+Then run:
+
+```bash
 cd my-project
-bun install
 bun run dev
 ```
 
@@ -81,7 +100,7 @@ app.get("/", (c) => c.text("Beans!"))
 export default app
 ```
 
-If you see “Beans!” when your open the url Hono printed, your server works! Yipeeeee
+If you see “Beans!” when you open the URL Hono printed, your server works! Yipeeeee!
 
 ---
 
@@ -89,7 +108,7 @@ If you see “Beans!” when your open the url Hono printed, your server works! 
 
 ```bash
 bun add drizzle-orm dotenv
-bun add -D drizzle-kit @types/bun
+bun add -D drizzle-kit @types/bun better-sqlite3
 ```
 
 What this does:
@@ -100,7 +119,7 @@ What this does:
 
 ---
 
-# Step 3 - Decide where your database file lives
+# Step 3 - Define where your database file lives
 
 Create `.env` in the project root:
 
@@ -110,7 +129,7 @@ DB_FILE_NAME=./my.db
 
 This is the file SQLite will store data in.
 
-Add to `.gitignore`:
+Add to `.gitignore` (so you don't commit your secrets or DB!):
 
 ```
 .env
@@ -121,19 +140,26 @@ my.db
 
 # Step 4 - Define your database schema (the blueprint)
 
-Think of schema as: the database’s "types":
+**🛑 STOP & THINK!**
 
-- table name
+![Table](https://hc-cdn.hel1.your-objectstorage.com/s/v3/26bb1fa6e4995708_cleanshot_2025-12-27_at_22.19.29.png)
+
+This is where you decide what your app is about.
+Think of schema as the database’s "types":
+- table name (e.g., `presents`, `elves`, `cookies`)
 - column names
 - column types
 - default values
+
 ### Example schema
 
-Create `src/db/schema.ts`:
+Create `src/db/schema.ts`.
+*You can copy this exactly if you want to make a "Wishlist" app, OR rename `wishes` to whatever you want!*
 
 ```ts
 import { sqliteTable, integer, text } from "drizzle-orm/sqlite-core"
 
+// "wishes" is the table name in the DB
 export const wishes = sqliteTable("wishes", {
   id: integer("id").primaryKey({ autoIncrement: true }),
   item: text("item").notNull(),
@@ -142,35 +168,24 @@ export const wishes = sqliteTable("wishes", {
 })
 ```
 
-Your table could be `quests`, `scores`, `cookies`, `notes`… anything.
+**Cheat Sheet for your own ideas:**
 
-You only need:
-- one table to start
-- a primary key id is needed per table
-- a couple fields you care about
-
-Its up to you what you put in it, below is a cheat sheet!
-
-**Primary key (your table needs this, it needs to be unique)**
-
+**Primary key (your table needs this)**
 ```ts
 id: integer("id").primaryKey({ autoIncrement: true }),
 ```
 
 **Text / strings**
-
 ```ts
-text("name").notNull()     // required because of notNull
-text("notes")             // optional text
+text("name").notNull()     // required
+text("description")        // optional
 ```
 
 **Numbers / booleans**
-
 ```ts
-integer("count").notNull()
-integer("done").notNull().default(0)  // 0 = false, 1 = true SQLite doesnt have real booleans
+integer("score").notNull()
+integer("is_nice").notNull().default(0)  // 0 = false, 1 = true
 ```
-
 
 ---
 
@@ -206,7 +221,7 @@ After this:
 - your `my.db` file should exist
 - your table should exist inside it
 
-If you change your schema later (add a column), run `push` again.
+**Tip:** If you change your schema later (like adding a column), run `push` again!
 
 ---
 
@@ -218,31 +233,26 @@ Create `src/db/index.ts`:
 
 ```ts
 import "dotenv/config"
+import { Database } from "bun:sqlite"
 import { drizzle } from "drizzle-orm/bun-sqlite"
 
-export const db = drizzle(process.env.DB_FILE_NAME!)
+const sqlite = new Database(process.env.DB_FILE_NAME!)
+export const db = drizzle(sqlite)
 ```
-
-Now the server can use `db` to query your SQLite file.
 
 ---
 
 # Step 8 - Put DB code in helper functions
 
-Routes should be readable. So we make helper functions like:
+Routes should be readable. So we make helper functions.
 
-- `listThings()`
-- `createThing()`
-- `updateThing()`
-- `deleteThing()`
-
-### Example helpers
+**If you changed your table name in Step 4, update these functions to match!**
 
 Create `src/db/queries.ts`:
 
 ```ts
 import { db } from "./index"
-import { wishes } from "./schema"
+import { wishes } from "./schema" // <--- Import YOUR table here
 import { eq, desc } from "drizzle-orm"
 
 export function listWishes() {
@@ -256,27 +266,30 @@ export function createWish(item: string) {
     item,
     fulfilled: 0,
     createdAt,
-  }).run()
+  }).returning({ id: wishes.id }).get()
 
-  return { id: Number(res.lastInsertRowid) }
+  return res
 }
 
 export function fulfillWish(id: number) {
   const res = db.update(wishes)
     .set({ fulfilled: 1 })
     .where(eq(wishes.id, id))
-    .run()
+    .returning({ id: wishes.id })
+    .get()
 
-  return { changes: res.changes }
+  return res
 }
 
 export function deleteWish(id: number) {
-  const res = db.delete(wishes).where(eq(wishes.id, id)).run()
-  return { changes: res.changes }
+  const res = db.delete(wishes)
+    .where(eq(wishes.id, id))
+    .returning({ id: wishes.id })
+    .get()
+    
+  return res
 }
 ```
-
-Again: **this is an example, do whatever you want!**
 
 ---
 
@@ -284,98 +297,95 @@ Again: **this is an example, do whatever you want!**
 
 Now your routes become short and understandable.
 
-### Example API routes
-
 In `src/index.ts`:
 
 ```ts
+import { Hono } from "hono"
 import { createWish, deleteWish, fulfillWish, listWishes } from "./db/queries"
 
+const app = new Hono()
+
+app.get("/", (c) => c.text("Beans!"))
+
+// GET all wishes
 app.get("/api/wishes", (c) => c.json(listWishes()))
 
+// POST a new wish
 app.post("/api/wishes", async (c) => {
   const body = await c.req.json().catch(() => null)
-  const item = (body?.item ?? "").toString().trim()
+  // "item" matches the column name in our schema
+  const item = (body?.item ?? "").toString().trim() 
+  
   if (!item) return c.json({ error: "item is required" }, 400)
 
   return c.json(createWish(item), 201)
 })
 
+// PATCH (update) a wish
 app.patch("/api/wishes/:id/fulfill", (c) => {
   const id = Number(c.req.param("id"))
   if (!Number.isFinite(id)) return c.json({ error: "bad id" }, 400)
 
   const res = fulfillWish(id)
-  if (res.changes === 0) return c.json({ error: "not found" }, 404)
+  if (!res) return c.json({ error: "not found" }, 404)
 
   return c.json({ ok: true })
 })
 
+// DELETE a wish
 app.delete("/api/wishes/:id", (c) => {
   const id = Number(c.req.param("id"))
   if (!Number.isFinite(id)) return c.json({ error: "bad id" }, 400)
 
   const res = deleteWish(id)
-  if (res.changes === 0) return c.json({ error: "not found" }, 404)
+  if (!res) return c.json({ error: "not found" }, 404)
 
   return c.json({ ok: true })
 })
+
+export default app
 ```
 
-That’s the pattern you can reuse forever:
-- validate
-- call helper
-- return JSON
 ---
+
 # Step 10 - Test it
 
-This is an **example** of how u can text your APIs!
+Here is how you can test your API!
 
-Add a wish:
-
+**Add a wish:**
 ```bash
-curl -X POST http://localhost:8181/api/wishes \
+curl -X POST http://localhost:3000/api/wishes \
   -H "content-type: application/json" \
   -d '{"item":"lego"}'
 ```
 
-List:
-
+**List wishes:**
 ```bash
-curl http://localhost:8181/api/wishes
+curl http://localhost:3000/api/wishes
 ```
 
-Fulfill:
-
+**Fulfill a wish:**
 ```bash
-curl -X PATCH http://localhost:8181/api/wishes/1/fulfill
+curl -X PATCH http://localhost:3000/api/wishes/1/fulfill
 ```
 
-Delete:
-
+**Delete a wish:**
 ```bash
-curl -X DELETE http://localhost:8181/api/wishes/1
+curl -X DELETE http://localhost:3000/api/wishes/1
 ```
 
 ---
 
-# Now it’s YOUR PROJECT time!
-
-You now have the entire pipeline:
-1. define schema
-2. push schema to DB
-3. connect DB in runtime
-4. write queries
-5. write routes
 # Step 11 - Make the server deployable
 
-Hosting providers set the port for you.  
-You **must** read `process.env.PORT`.
+Hosting providers set the port for you. You **must** read `process.env.PORT`.
 
-At the bottom of `src/index.ts`, replace the export with:
+At the bottom of `src/index.ts`, replace the `export default app` with:
 
 ```ts
 const port = Number(process.env.PORT) || 3000
+
+console.log(`Server is running on port ${port}`)
 
 export default {
   port,
@@ -383,23 +393,47 @@ export default {
 }
 ```
 
-Local dev still works. Deployment will now work too.
-
 ---
 
-# Step 12 - Deploy to FastDeploy (custom)
+# Step 12 - Deploy to FastDeploy
 
+Let's put this on the internet! We'll use a tool just made for this workshop, usally you would use a server like nest... but thats gone so lets use this custom tool i made, it will only work for this workshop! 
+
+### 12.1 Install the tool
 ```bash
-bunx drizzle-kit push
 bun install -g fastdeploy-hono
-fastdeploy login 
+```
+
+### 12.2 Login
+```bash
+fastdeploy login
+```
+
+### 12.3 Deploy!
+```bash
+# Make sure your DB is up to date first
+bunx drizzle-kit push
+
+# Ship it!
 fastdeploy
 ```
 
+Once it's done, it will give you a URL.
+You can now use that URL instead of `localhost:3000` in your curl commands!
+
+**⚠️ Important Note for Mac/Linux Users:**
+If your URL contains an exclamation mark `!`, you need to wrap the URL in single quotes `'` when using curl, otherwise your terminal might try to interpret it as a command history expansion.
+
+Example:
+```bash
+curl 'https://fastdeploy.deployor.dev/u/ident!RLwfBZ/test12121/api/wishes'
+```
+
 ---
+
 # Step 13 - Push to GitHub
 
-### 14.1 Init git
+### 13.1 Init git
 
 ```bash
 git init
@@ -407,21 +441,26 @@ git add .
 git commit -m "initial hono + drizzle + sqlite api"
 ```
 
----
+### 13.2 Create GitHub repo
 
-### 14.2 Create GitHub repo
+- Go to GitHub and create a **New Repository**
+- Name it whatever you want
+- **Do not** add a README or .gitignore (we already have them)
 
-- New repo on GitHub
-- Do not add README or .gitignore
+### 13.3 Push
 
----
-
-### 14.3 Push
+Copy the commands GitHub gives you, which look like this:
 
 ```bash
 git branch -M main
-git remote add origin https://github.com/YOURNAME/beans-cool-api.git
+git remote add origin https://github.com/YOURNAME/YOUR-REPO.git
 git push -u origin main
 ```
 
-Once you are done making your own project, [https://forms.hackclub.com/haxmas-day-4](https://forms.hackclub.com/haxmas-day-4) your project! Have fun!
+---
+
+# You're Done! 🎉
+
+Once you are done making your own project, take the URL that FastDeploy gave you and submit it here: [https://forms.hackclub.com/haxmas-day-4](https://forms.hackclub.com/haxmas-day-4)
+
+Have fun and Happy Hacking! 🎄
