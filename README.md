@@ -421,9 +421,6 @@ fastdeploy
 Once it's done, it will give you a URL.
 You can now use that URL instead of `localhost:3000` in your curl commands!
 
-**⚠️ Important Note for Mac/Linux Users:**
-If your URL contains an exclamation mark `!`, you need to wrap the URL in single quotes `'` when using curl, otherwise your terminal might try to interpret it as a command history expansion.
-
 Example:
 ```bash
 curl 'https://fastdeploy.deployor.dev/u/ident!RLwfBZ/test12121/api/wishes'
@@ -459,8 +456,8 @@ git push -u origin main
 
 ---
 
-# You're Done! 🎉
+# You're Done!!!! Yipee
 
-Once you are done making your own project, take the URL that FastDeploy gave you and submit it here: [https://forms.hackclub.com/haxmas-day-4](https://forms.hackclub.com/haxmas-day-4)
+Once you are done making your own project, take the URL that FastDeploy gave you and git url and submit it here: [https://forms.hackclub.com/haxmas-day-4](https://forms.hackclub.com/haxmas-day-4)
 
-Have fun and Happy Hacking! 🎄
+Have fun and Hacky Holidays! 🎄
